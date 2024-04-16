@@ -184,6 +184,11 @@ func makeFullNode(ctx *cli.Context) (*node.Node, ethapi.Backend) {
 		cfg.Eth.OverrideOptimismEcotone = &v
 	}
 
+	if ctx.IsSet(utils.OverrideOptimismFjord.Name) {
+		v := ctx.Uint64(utils.OverrideOptimismFjord.Name)
+		cfg.Eth.OverrideOptimismFjord = &v
+	}
+
 	if ctx.IsSet(utils.OverrideOptimismInterop.Name) {
 		v := ctx.Uint64(utils.OverrideOptimismInterop.Name)
 		cfg.Eth.OverrideOptimismInterop = &v

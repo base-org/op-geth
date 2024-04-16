@@ -58,6 +58,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		OverrideVerkle                          *uint64 `toml:",omitempty"`
 		OverrideOptimismCanyon                  *uint64 `toml:",omitempty"`
 		OverrideOptimismEcotone                 *uint64 `toml:",omitempty"`
+		OverrideOptimismFjord                   *uint64 `toml:",omitempty"`
 		OverrideOptimismInterop                 *uint64 `toml:",omitempty"`
 		ApplySuperchainUpgrades                 bool    `toml:",omitempty"`
 		RollupSequencerHTTP                     string
@@ -109,6 +110,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.OverrideVerkle = c.OverrideVerkle
 	enc.OverrideOptimismCanyon = c.OverrideOptimismCanyon
 	enc.OverrideOptimismEcotone = c.OverrideOptimismEcotone
+	enc.OverrideOptimismFjord = c.OverrideOptimismFjord
 	enc.OverrideOptimismInterop = c.OverrideOptimismInterop
 	enc.ApplySuperchainUpgrades = c.ApplySuperchainUpgrades
 	enc.RollupSequencerHTTP = c.RollupSequencerHTTP
@@ -164,6 +166,7 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		OverrideVerkle                          *uint64 `toml:",omitempty"`
 		OverrideOptimismCanyon                  *uint64 `toml:",omitempty"`
 		OverrideOptimismEcotone                 *uint64 `toml:",omitempty"`
+		OverrideOptimismFjord                   *uint64 `toml:",omitempty"`
 		OverrideOptimismInterop                 *uint64 `toml:",omitempty"`
 		ApplySuperchainUpgrades                 *bool   `toml:",omitempty"`
 		RollupSequencerHTTP                     *string
@@ -299,6 +302,9 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	}
 	if dec.OverrideOptimismEcotone != nil {
 		c.OverrideOptimismEcotone = dec.OverrideOptimismEcotone
+	}
+	if dec.OverrideOptimismFjord != nil {
+		c.OverrideOptimismFjord = dec.OverrideOptimismFjord
 	}
 	if dec.OverrideOptimismInterop != nil {
 		c.OverrideOptimismInterop = dec.OverrideOptimismInterop

@@ -75,7 +75,6 @@ var (
 	fjordDivisor   = big.NewInt(1_000_000_000_000)
 	sixteen        = big.NewInt(16)
 
-	// TODO(ytu): Add spec link once spec is merged
 	l1CostIntercept  = big.NewInt(-27_321_890)
 	l1CostFastlzCoef = big.NewInt(1_031_462)
 	l1CostTxSizeCoef = big.NewInt(-88_664)
@@ -86,8 +85,8 @@ var (
 // RollupCostData is a transaction structure that caches data for quickly computing the data
 // availablility costs for the transaction.
 type RollupCostData struct {
-	zeroes, ones   uint64
-	compressedSize uint64
+	zeroes, ones uint64
+	fastlzSize   uint64
 }
 
 type StateGetter interface {
@@ -110,7 +109,7 @@ func NewRollupCostData(data []byte) (out RollupCostData) {
 			out.ones++
 		}
 	}
-	out.compressedSize = uint64(FlzCompressLen(data))
+	out.fastlzSize = uint64(FlzCompressLen(data))
 	return out
 }
 
@@ -346,7 +345,7 @@ func newL1CostFuncFjord(l1BaseFee, l1BlobBaseFee, l1BaseFeeScalar, l1BlobBaseFee
 		blobCostPerByte := new(big.Int).Mul(l1BlobBaseFee, l1BlobBaseFeeScalar)
 		l1FeeScaled := new(big.Int).Add(calldataCostPerByte, blobCostPerByte)
 
-		fastlzTerm := new(big.Int).SetUint64(costData.compressedSize)
+		fastlzTerm := new(big.Int).SetUint64(costData.fastlzSize)
 		fastlzTerm.Mul(fastlzTerm, l1CostFastlzCoef)
 		txSizeTerm := new(big.Int).SetUint64(costData.zeroes + costData.ones)
 		txSizeTerm.Mul(txSizeTerm, l1CostTxSizeCoef)
