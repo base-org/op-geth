@@ -128,6 +128,21 @@ func NewL1CostFunc(config *params.ChainConfig, statedb StateGetter) L1CostFunc {
 		l1FeeScalars := statedb.GetState(L1BlockAddr, L1FeeScalarsSlot).Bytes()
 		l1BlobBaseFee := statedb.GetState(L1BlockAddr, L1BlobBaseFeeSlot).Big()
 		l1BaseFee := statedb.GetState(L1BlockAddr, L1BaseFeeSlot).Big()
+
+		if config.IsOptimismEcotone(blockTime) {
+			// Edge case: the very first Ecotone block requires we use the Bedrock cost
+			// function. We detect this scenario by checking if the Ecotone parameters are
+			// unset. Note here we rely on assumption that the scalar parameters are adjacent
+			// in the buffer and l1BaseFeeScalar comes first. We need to check this prior to
+			// other forks, as the first block of Fjord and Ecotone could be the  same block.
+			firstEcotoneBlock := l1BlobBaseFee.BitLen() == 0 &&
+				bytes.Equal(emptyScalars, l1FeeScalars[scalarSectionStart:scalarSectionStart+8])
+			if firstEcotoneBlock {
+				log.Info("using bedrock l1 cost func for first Ecotone block", "time", blockTime)
+				return newL1CostFuncBedrock(config, statedb, blockTime)
+			}
+		}
+
 		if config.IsOptimismFjord(blockTime) {
 			l1BaseFeeScalar, l1BlobBaseFeeScalar := extractEcotoneFeeParams(l1FeeScalars)
 			return newL1CostFuncFjord(
@@ -139,19 +154,9 @@ func NewL1CostFunc(config *params.ChainConfig, statedb StateGetter) L1CostFunc {
 				l1CostFastlzCoef,
 				l1CostTxSizeCoef,
 			)
-		}
-		if config.IsOptimismEcotone(blockTime) {
-			// Edge case: the very first Ecotone block requires we use the Bedrock cost
-			// function. We detect this scenario by checking if the Ecotone parameters are
-			// unset. Note here we rely on assumption that the scalar parameters are adjacent
-			// in the buffer and l1BaseFeeScalar comes first.
-			firstEcotoneBlock := l1BlobBaseFee.BitLen() == 0 &&
-				bytes.Equal(emptyScalars, l1FeeScalars[scalarSectionStart:scalarSectionStart+8])
-			if !firstEcotoneBlock {
-				l1BaseFeeScalar, l1BlobBaseFeeScalar := extractEcotoneFeeParams(l1FeeScalars)
-				return newL1CostFuncEcotone(l1BaseFee, l1BlobBaseFee, l1BaseFeeScalar, l1BlobBaseFeeScalar)
-			}
-			log.Info("using bedrock l1 cost func for first Ecotone block", "time", blockTime)
+		} else if config.IsOptimismEcotone(blockTime) {
+			l1BaseFeeScalar, l1BlobBaseFeeScalar := extractEcotoneFeeParams(l1FeeScalars)
+			return newL1CostFuncEcotone(l1BaseFee, l1BlobBaseFee, l1BaseFeeScalar, l1BlobBaseFeeScalar)
 		}
 		return newL1CostFuncBedrock(config, statedb, blockTime)
 	}

@@ -286,6 +286,18 @@ func TestNewL1CostFunc(t *testing.T) {
 	fee = costFunc(emptyTx.RollupCostData(), time)
 	require.NotNil(t, fee)
 	require.Equal(t, regolithFee, fee)
+
+	// emptyTx fee w/ fjord config, but simulate first ecotone block by blowing away the ecotone
+	// params. Should result in regolith fee.
+	config.EcotoneTime = &time
+	config.FjordTime = &time
+	statedb.baseFeeScalar = 0
+	statedb.blobBaseFeeScalar = 0
+	statedb.blobBaseFee = new(big.Int)
+	costFunc = NewL1CostFunc(config, statedb)
+	fee = costFunc(emptyTx.RollupCostData(), time)
+	require.NotNil(t, fee)
+	require.Equal(t, regolithFee, fee)
 }
 
 func TestFlzCompressLen(t *testing.T) {
