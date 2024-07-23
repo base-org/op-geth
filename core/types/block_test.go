@@ -225,12 +225,13 @@ func makeBenchBlock() *Block {
 		uncles   = make([]*Header, 3)
 	)
 	header := &Header{
-		Difficulty: math.BigPow(11, 11),
-		Number:     math.BigPow(2, 9),
-		GasLimit:   12345678,
-		GasUsed:    1476322,
-		Time:       9876543,
-		Extra:      []byte("coolest block on chain"),
+		Difficulty:   math.BigPow(11, 11),
+		Number:       math.BigPow(2, 9),
+		GasLimit:     12345678,
+		GasUsed:      1476322,
+		Time:         9876543,
+		Extra:        []byte("coolest block on chain"),
+		Milliseconds: 9876543 * 1000,
 	}
 	for i := range txs {
 		amount := math.BigPow(2, int64(i))
@@ -246,12 +247,13 @@ func makeBenchBlock() *Block {
 	}
 	for i := range uncles {
 		uncles[i] = &Header{
-			Difficulty: math.BigPow(11, 11),
-			Number:     math.BigPow(2, 9),
-			GasLimit:   12345678,
-			GasUsed:    1476322,
-			Time:       9876543,
-			Extra:      []byte("benchmark uncle"),
+			Difficulty:   math.BigPow(11, 11),
+			Number:       math.BigPow(2, 9),
+			GasLimit:     12345678,
+			GasUsed:      1476322,
+			Time:         9876543,
+			Extra:        []byte("benchmark uncle"),
+			Milliseconds: 9876543 * 1000,
 		}
 	}
 	return NewBlock(header, txs, uncles, receipts, blocktest.NewHasher())

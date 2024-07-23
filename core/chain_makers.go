@@ -217,6 +217,7 @@ func (b *BlockGen) TxNonce(addr common.Address) uint64 {
 func (b *BlockGen) AddUncle(h *types.Header) {
 	// The uncle will have the same timestamp and auto-generated difficulty
 	h.Time = b.header.Time
+	h.Milliseconds = b.header.Milliseconds
 
 	var parent *types.Header
 	for i := b.i - 1; i >= 0; i-- {
@@ -285,6 +286,7 @@ func (b *BlockGen) PrevBlock(index int) *types.Block {
 // tied to chain length directly.
 func (b *BlockGen) OffsetTime(seconds int64) {
 	b.header.Time += uint64(seconds)
+	b.header.Milliseconds += uint64(seconds * 1000)
 	if b.header.Time <= b.cm.bottom.Header().Time {
 		panic("block time out of range")
 	}
@@ -420,13 +422,14 @@ func GenerateChainWithGenesis(genesis *Genesis, engine consensus.Engine, n int, 
 func (cm *chainMaker) makeHeader(parent *types.Block, state *state.StateDB, engine consensus.Engine) *types.Header {
 	time := parent.Time() + 10 // block time is fixed at 10 seconds
 	header := &types.Header{
-		Root:       state.IntermediateRoot(cm.config.IsEIP158(parent.Number())),
-		ParentHash: parent.Hash(),
-		Coinbase:   parent.Coinbase(),
-		Difficulty: engine.CalcDifficulty(cm, time, parent.Header()),
-		GasLimit:   parent.GasLimit(),
-		Number:     new(big.Int).Add(parent.Number(), common.Big1),
-		Time:       time,
+		Root:         state.IntermediateRoot(cm.config.IsEIP158(parent.Number())),
+		ParentHash:   parent.Hash(),
+		Coinbase:     parent.Coinbase(),
+		Difficulty:   engine.CalcDifficulty(cm, time, parent.Header()),
+		GasLimit:     parent.GasLimit(),
+		Number:       new(big.Int).Add(parent.Number(), common.Big1),
+		Time:         time,
+		Milliseconds: parent.Milliseconds() + 10*1000,
 	}
 
 	if cm.config.IsLondon(header.Number) {

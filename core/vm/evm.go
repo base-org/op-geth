@@ -79,14 +79,15 @@ type BlockContext struct {
 	L1CostFunc types.L1CostFunc
 
 	// Block information
-	Coinbase    common.Address // Provides information for COINBASE
-	GasLimit    uint64         // Provides information for GASLIMIT
-	BlockNumber *big.Int       // Provides information for NUMBER
-	Time        uint64         // Provides information for TIME
-	Difficulty  *big.Int       // Provides information for DIFFICULTY
-	BaseFee     *big.Int       // Provides information for BASEFEE (0 if vm runs with NoBaseFee flag and 0 gas price)
-	BlobBaseFee *big.Int       // Provides information for BLOBBASEFEE (0 if vm runs with NoBaseFee flag and 0 blob gas price)
-	Random      *common.Hash   // Provides information for PREVRANDAO
+	Coinbase     common.Address // Provides information for COINBASE
+	GasLimit     uint64         // Provides information for GASLIMIT
+	BlockNumber  *big.Int       // Provides information for NUMBER
+	Time         uint64         // Provides information for TIME
+	Difficulty   *big.Int       // Provides information for DIFFICULTY
+	BaseFee      *big.Int       // Provides information for BASEFEE (0 if vm runs with NoBaseFee flag and 0 gas price)
+	BlobBaseFee  *big.Int       // Provides information for BLOBBASEFEE (0 if vm runs with NoBaseFee flag and 0 blob gas price)
+	Random       *common.Hash   // Provides information for PREVRANDAO
+	Milliseconds uint64         // Provides information for MILLISECONDS
 }
 
 // TxContext provides the EVM with information about a transaction.

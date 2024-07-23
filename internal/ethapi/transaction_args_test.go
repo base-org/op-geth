@@ -280,13 +280,14 @@ func newBackendMock() *backendMock {
 	}
 	return &backendMock{
 		current: &types.Header{
-			Difficulty: big.NewInt(10000000000),
-			Number:     big.NewInt(1100),
-			GasLimit:   8_000_000,
-			GasUsed:    8_000_000,
-			Time:       555,
-			Extra:      make([]byte, 32),
-			BaseFee:    big.NewInt(10),
+			Difficulty:   big.NewInt(10000000000),
+			Number:       big.NewInt(1100),
+			GasLimit:     8_000_000,
+			GasUsed:      8_000_000,
+			Time:         555,
+			Extra:        make([]byte, 32),
+			BaseFee:      big.NewInt(10),
+			Milliseconds: 555 * 1000,
 		},
 		config: config,
 	}
@@ -296,12 +297,15 @@ func (b *backendMock) setFork(fork string) error {
 	if fork == "legacy" {
 		b.current.Number = big.NewInt(900)
 		b.current.Time = 555
+		b.current.Milliseconds = 555 * 1000
 	} else if fork == "london" {
 		b.current.Number = big.NewInt(1100)
 		b.current.Time = 555
+		b.current.Milliseconds = 555 * 1000
 	} else if fork == "cancun" {
 		b.current.Number = big.NewInt(1100)
 		b.current.Time = 700
+		b.current.Milliseconds = 700 * 1000
 		// Blob base fee will be 2
 		excess := uint64(2314058)
 		b.current.ExcessBlobGas = &excess

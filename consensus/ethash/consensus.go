@@ -540,6 +540,7 @@ func (ethash *Ethash) SealHash(header *types.Header) (hash common.Hash) {
 		header.GasUsed,
 		header.Time,
 		header.Extra,
+		header.Milliseconds,
 	}
 	if header.BaseFee != nil {
 		enc = append(enc, header.BaseFee)

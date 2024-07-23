@@ -618,6 +618,7 @@ func TestNewPayloadOnInvalidChain(t *testing.T) {
 				Timestamp:             parent.Time + 1,
 				Random:                crypto.Keccak256Hash([]byte{byte(i)}),
 				SuggestedFeeRecipient: parent.Coinbase,
+				Milliseconds:          parent.Milliseconds + 1000,
 			}
 			fcState = engine.ForkchoiceStateV1{
 				HeadBlockHash:      parent.Hash(),
@@ -753,6 +754,7 @@ func getNewPayload(t *testing.T, api *ConsensusAPI, parent *types.Header, withdr
 		Random:                crypto.Keccak256Hash([]byte{byte(1)}),
 		SuggestedFeeRecipient: parent.Coinbase,
 		Withdrawals:           withdrawals,
+		Milliseconds:          parent.Milliseconds + 1000,
 	}
 
 	payload, err := assembleBlock(api, parent.Hash(), &params)
@@ -769,21 +771,22 @@ func setBlockhash(data *engine.ExecutableData) *engine.ExecutableData {
 	number := big.NewInt(0)
 	number.SetUint64(data.Number)
 	header := &types.Header{
-		ParentHash:  data.ParentHash,
-		UncleHash:   types.EmptyUncleHash,
-		Coinbase:    data.FeeRecipient,
-		Root:        data.StateRoot,
-		TxHash:      types.DeriveSha(types.Transactions(txs), trie.NewStackTrie(nil)),
-		ReceiptHash: data.ReceiptsRoot,
-		Bloom:       types.BytesToBloom(data.LogsBloom),
-		Difficulty:  common.Big0,
-		Number:      number,
-		GasLimit:    data.GasLimit,
-		GasUsed:     data.GasUsed,
-		Time:        data.Timestamp,
-		BaseFee:     data.BaseFeePerGas,
-		Extra:       data.ExtraData,
-		MixDigest:   data.Random,
+		ParentHash:   data.ParentHash,
+		UncleHash:    types.EmptyUncleHash,
+		Coinbase:     data.FeeRecipient,
+		Root:         data.StateRoot,
+		TxHash:       types.DeriveSha(types.Transactions(txs), trie.NewStackTrie(nil)),
+		ReceiptHash:  data.ReceiptsRoot,
+		Bloom:        types.BytesToBloom(data.LogsBloom),
+		Difficulty:   common.Big0,
+		Number:       number,
+		GasLimit:     data.GasLimit,
+		GasUsed:      data.GasUsed,
+		Time:         data.Timestamp,
+		BaseFee:      data.BaseFeePerGas,
+		Extra:        data.ExtraData,
+		MixDigest:    data.Random,
+		Milliseconds: data.Milliseconds,
 	}
 	block := types.NewBlockWithHeader(header).WithBody(txs, nil /* uncles */)
 	data.BlockHash = block.Hash()
@@ -927,21 +930,22 @@ func TestNewPayloadOnInvalidTerminalBlock(t *testing.T) {
 	// We need to recompute the blockhash, since the miner computes a wrong (correct) blockhash
 	txs, _ := decodeTransactions(data.Transactions)
 	header := &types.Header{
-		ParentHash:  data.ParentHash,
-		UncleHash:   types.EmptyUncleHash,
-		Coinbase:    data.FeeRecipient,
-		Root:        data.StateRoot,
-		TxHash:      types.DeriveSha(types.Transactions(txs), trie.NewStackTrie(nil)),
-		ReceiptHash: data.ReceiptsRoot,
-		Bloom:       types.BytesToBloom(data.LogsBloom),
-		Difficulty:  common.Big0,
-		Number:      new(big.Int).SetUint64(data.Number),
-		GasLimit:    data.GasLimit,
-		GasUsed:     data.GasUsed,
-		Time:        data.Timestamp,
-		BaseFee:     data.BaseFeePerGas,
-		Extra:       data.ExtraData,
-		MixDigest:   data.Random,
+		ParentHash:   data.ParentHash,
+		UncleHash:    types.EmptyUncleHash,
+		Coinbase:     data.FeeRecipient,
+		Root:         data.StateRoot,
+		TxHash:       types.DeriveSha(types.Transactions(txs), trie.NewStackTrie(nil)),
+		ReceiptHash:  data.ReceiptsRoot,
+		Bloom:        types.BytesToBloom(data.LogsBloom),
+		Difficulty:   common.Big0,
+		Number:       new(big.Int).SetUint64(data.Number),
+		GasLimit:     data.GasLimit,
+		GasUsed:      data.GasUsed,
+		Time:         data.Timestamp,
+		BaseFee:      data.BaseFeePerGas,
+		Extra:        data.ExtraData,
+		MixDigest:    data.Random,
+		Milliseconds: data.Milliseconds,
 	}
 	block := types.NewBlockWithHeader(header).WithBody(txs, nil /* uncles */)
 	data.BlockHash = block.Hash()
@@ -1060,8 +1064,9 @@ func TestWithdrawals(t *testing.T) {
 	// 10: Build Shanghai block with no withdrawals.
 	parent := ethservice.BlockChain().CurrentHeader()
 	blockParams := engine.PayloadAttributes{
-		Timestamp:   parent.Time + 5,
-		Withdrawals: make([]*types.Withdrawal, 0),
+		Timestamp:    parent.Time + 5,
+		Withdrawals:  make([]*types.Withdrawal, 0),
+		Milliseconds: parent.Milliseconds + 5*1000,
 	}
 	fcState := engine.ForkchoiceStateV1{
 		HeadBlockHash: parent.Hash(),
@@ -1189,15 +1194,17 @@ func TestNilWithdrawals(t *testing.T) {
 		// Before Shanghai
 		{
 			blockParams: engine.PayloadAttributes{
-				Timestamp:   parent.Time + 2,
-				Withdrawals: nil,
+				Timestamp:    parent.Time + 2,
+				Withdrawals:  nil,
+				Milliseconds: parent.Milliseconds + 2*1000,
 			},
 			wantErr: false,
 		},
 		{
 			blockParams: engine.PayloadAttributes{
-				Timestamp:   parent.Time + 2,
-				Withdrawals: make([]*types.Withdrawal, 0),
+				Timestamp:    parent.Time + 2,
+				Withdrawals:  make([]*types.Withdrawal, 0),
+				Milliseconds: parent.Milliseconds + 2*1000,
 			},
 			wantErr: true,
 		},
@@ -1211,21 +1218,24 @@ func TestNilWithdrawals(t *testing.T) {
 						Amount:  32,
 					},
 				},
+				Milliseconds: parent.Milliseconds + 2*1000,
 			},
 			wantErr: true,
 		},
 		// After Shanghai
 		{
 			blockParams: engine.PayloadAttributes{
-				Timestamp:   parent.Time + 5,
-				Withdrawals: nil,
+				Timestamp:    parent.Time + 5,
+				Withdrawals:  nil,
+				Milliseconds: parent.Milliseconds + 5*1000,
 			},
 			wantErr: true,
 		},
 		{
 			blockParams: engine.PayloadAttributes{
-				Timestamp:   parent.Time + 5,
-				Withdrawals: make([]*types.Withdrawal, 0),
+				Timestamp:    parent.Time + 5,
+				Withdrawals:  make([]*types.Withdrawal, 0),
+				Milliseconds: parent.Milliseconds + 5*1000,
 			},
 			wantErr: false,
 		},
@@ -1239,6 +1249,7 @@ func TestNilWithdrawals(t *testing.T) {
 						Amount:  32,
 					},
 				},
+				Milliseconds: parent.Milliseconds + 5*1000,
 			},
 			wantErr: false,
 		},
@@ -1611,9 +1622,10 @@ func TestParentBeaconBlockRoot(t *testing.T) {
 	// 11: Build Shanghai block with no withdrawals.
 	parent := ethservice.BlockChain().CurrentHeader()
 	blockParams := engine.PayloadAttributes{
-		Timestamp:   parent.Time + 5,
-		Withdrawals: make([]*types.Withdrawal, 0),
-		BeaconRoot:  &common.Hash{42},
+		Timestamp:    parent.Time + 5,
+		Withdrawals:  make([]*types.Withdrawal, 0),
+		BeaconRoot:   &common.Hash{42},
+		Milliseconds: parent.Milliseconds + 5*1000,
 	}
 	fcState := engine.ForkchoiceStateV1{
 		HeadBlockHash: parent.Hash(),

@@ -215,14 +215,15 @@ func BenchmarkEVM_CREATE2_1200(bench *testing.B) {
 
 func fakeHeader(n uint64, parentHash common.Hash) *types.Header {
 	header := types.Header{
-		Coinbase:   common.HexToAddress("0x00000000000000000000000000000000deadbeef"),
-		Number:     big.NewInt(int64(n)),
-		ParentHash: parentHash,
-		Time:       1000,
-		Nonce:      types.BlockNonce{0x1},
-		Extra:      []byte{},
-		Difficulty: big.NewInt(0),
-		GasLimit:   100000,
+		Coinbase:     common.HexToAddress("0x00000000000000000000000000000000deadbeef"),
+		Number:       big.NewInt(int64(n)),
+		ParentHash:   parentHash,
+		Time:         1000,
+		Milliseconds: 1000 * 1000,
+		Nonce:        types.BlockNonce{0x1},
+		Extra:        []byte{},
+		Difficulty:   big.NewInt(0),
+		GasLimit:     100000,
 	}
 	return &header
 }
