@@ -56,6 +56,7 @@ type header struct {
 	BlobGasUsed           *uint64           `json:"blobGasUsed"   rlp:"optional"`
 	ExcessBlobGas         *uint64           `json:"excessBlobGas"   rlp:"optional"`
 	ParentBeaconBlockRoot *common.Hash      `json:"parentBeaconBlockRoot" rlp:"optional"`
+	Milliseconds          uint64            `json:"milliseconds"     gencodec:"required"`
 }
 
 type headerMarshaling struct {
@@ -68,6 +69,7 @@ type headerMarshaling struct {
 	BaseFee       *math.HexOrDecimal256
 	BlobGasUsed   *math.HexOrDecimal64
 	ExcessBlobGas *math.HexOrDecimal64
+	Milliseconds  math.HexOrDecimal64
 }
 
 type bbInput struct {
@@ -136,6 +138,7 @@ func (i *bbInput) ToBlock() *types.Block {
 		BlobGasUsed:      i.Header.BlobGasUsed,
 		ExcessBlobGas:    i.Header.ExcessBlobGas,
 		ParentBeaconRoot: i.Header.ParentBeaconBlockRoot,
+		Milliseconds:     i.Header.Milliseconds,
 	}
 
 	// Fill optional values.

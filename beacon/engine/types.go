@@ -53,7 +53,8 @@ type PayloadAttributes struct {
 	// only transactions from the above Transactions list will be included.
 	NoTxPool bool `json:"noTxPool,omitempty" gencodec:"optional"`
 	// GasLimit is a field for rollups: if set, this sets the exact gas limit the block produced with.
-	GasLimit *uint64 `json:"gasLimit,omitempty" gencodec:"optional"`
+	GasLimit     *uint64 `json:"gasLimit,omitempty" gencodec:"optional"`
+	Milliseconds uint64  `json:"milliseconds" gencodec:"required"`
 }
 
 // JSON type overrides for PayloadAttributes.
@@ -62,6 +63,8 @@ type payloadAttributesMarshaling struct {
 
 	Transactions []hexutil.Bytes
 	GasLimit     *hexutil.Uint64
+
+	Milliseconds hexutil.Uint64
 }
 
 //go:generate go run github.com/fjl/gencodec -type ExecutableData -field-override executableDataMarshaling -out gen_ed.go
@@ -85,6 +88,7 @@ type ExecutableData struct {
 	Withdrawals   []*types.Withdrawal `json:"withdrawals"`
 	BlobGasUsed   *uint64             `json:"blobGasUsed"`
 	ExcessBlobGas *uint64             `json:"excessBlobGas"`
+	Milliseconds  uint64              `json:"milliseconds" gencodec:"required"`
 }
 
 // JSON type overrides for executableData.
@@ -99,6 +103,7 @@ type executableDataMarshaling struct {
 	Transactions  []hexutil.Bytes
 	BlobGasUsed   *hexutil.Uint64
 	ExcessBlobGas *hexutil.Uint64
+	Milliseconds  hexutil.Uint64
 }
 
 //go:generate go run github.com/fjl/gencodec -type ExecutionPayloadEnvelope -field-override executionPayloadEnvelopeMarshaling -out gen_epe.go
@@ -267,6 +272,7 @@ func ExecutableDataToBlock(params ExecutableData, versionedHashes []common.Hash,
 		ExcessBlobGas:    params.ExcessBlobGas,
 		BlobGasUsed:      params.BlobGasUsed,
 		ParentBeaconRoot: beaconRoot,
+		Milliseconds:     params.Milliseconds,
 	}
 	block := types.NewBlockWithHeader(header).WithBody(txs, nil /* uncles */).WithWithdrawals(params.Withdrawals)
 	if block.Hash() != params.BlockHash {
@@ -296,6 +302,7 @@ func BlockToExecutableData(block *types.Block, fees *big.Int, sidecars []*types.
 		Withdrawals:   block.Withdrawals(),
 		BlobGasUsed:   block.BlobGasUsed(),
 		ExcessBlobGas: block.ExcessBlobGas(),
+		Milliseconds:  block.Milliseconds(),
 	}
 	bundle := BlobsBundleV1{
 		Commitments: make([]hexutil.Bytes, 0),
