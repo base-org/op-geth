@@ -89,19 +89,20 @@ const (
 
 // 0x40 range - block operations.
 const (
-	BLOCKHASH   OpCode = 0x40
-	COINBASE    OpCode = 0x41
-	TIMESTAMP   OpCode = 0x42
-	NUMBER      OpCode = 0x43
-	DIFFICULTY  OpCode = 0x44
-	RANDOM      OpCode = 0x44 // Same as DIFFICULTY
-	PREVRANDAO  OpCode = 0x44 // Same as DIFFICULTY
-	GASLIMIT    OpCode = 0x45
-	CHAINID     OpCode = 0x46
-	SELFBALANCE OpCode = 0x47
-	BASEFEE     OpCode = 0x48
-	BLOBHASH    OpCode = 0x49
-	BLOBBASEFEE OpCode = 0x4a
+	BLOCKHASH    OpCode = 0x40
+	COINBASE     OpCode = 0x41
+	TIMESTAMP    OpCode = 0x42
+	NUMBER       OpCode = 0x43
+	DIFFICULTY   OpCode = 0x44
+	RANDOM       OpCode = 0x44 // Same as DIFFICULTY
+	PREVRANDAO   OpCode = 0x44 // Same as DIFFICULTY
+	GASLIMIT     OpCode = 0x45
+	CHAINID      OpCode = 0x46
+	SELFBALANCE  OpCode = 0x47
+	BASEFEE      OpCode = 0x48
+	BLOBHASH     OpCode = 0x49
+	BLOBBASEFEE  OpCode = 0x4a
+	MILLISECONDS OpCode = 0x4b
 )
 
 // 0x50 range - 'storage' and execution.
@@ -277,17 +278,18 @@ var opCodeToString = [256]string{
 	EXTCODEHASH:    "EXTCODEHASH",
 
 	// 0x40 range - block operations.
-	BLOCKHASH:   "BLOCKHASH",
-	COINBASE:    "COINBASE",
-	TIMESTAMP:   "TIMESTAMP",
-	NUMBER:      "NUMBER",
-	DIFFICULTY:  "DIFFICULTY", // TODO (MariusVanDerWijden) rename to PREVRANDAO post merge
-	GASLIMIT:    "GASLIMIT",
-	CHAINID:     "CHAINID",
-	SELFBALANCE: "SELFBALANCE",
-	BASEFEE:     "BASEFEE",
-	BLOBHASH:    "BLOBHASH",
-	BLOBBASEFEE: "BLOBBASEFEE",
+	BLOCKHASH:    "BLOCKHASH",
+	COINBASE:     "COINBASE",
+	TIMESTAMP:    "TIMESTAMP",
+	NUMBER:       "NUMBER",
+	DIFFICULTY:   "DIFFICULTY", // TODO (MariusVanDerWijden) rename to PREVRANDAO post merge
+	GASLIMIT:     "GASLIMIT",
+	CHAINID:      "CHAINID",
+	SELFBALANCE:  "SELFBALANCE",
+	BASEFEE:      "BASEFEE",
+	BLOBHASH:     "BLOBHASH",
+	BLOBBASEFEE:  "BLOBBASEFEE",
+	MILLISECONDS: "MILLISECONDS",
 
 	// 0x50 range - 'storage' and execution.
 	POP:      "POP",
@@ -457,6 +459,7 @@ var stringToOp = map[string]OpCode{
 	"BLOCKHASH":      BLOCKHASH,
 	"COINBASE":       COINBASE,
 	"TIMESTAMP":      TIMESTAMP,
+	"MILLISECONDS":   MILLISECONDS,
 	"NUMBER":         NUMBER,
 	"DIFFICULTY":     DIFFICULTY,
 	"GASLIMIT":       GASLIMIT,
