@@ -36,6 +36,7 @@ func (h Header) MarshalJSON() ([]byte, error) {
 		BlobGasUsed      *hexutil.Uint64 `json:"blobGasUsed" rlp:"optional"`
 		ExcessBlobGas    *hexutil.Uint64 `json:"excessBlobGas" rlp:"optional"`
 		ParentBeaconRoot *common.Hash    `json:"parentBeaconBlockRoot" rlp:"optional"`
+		Milliseconds     hexutil.Uint64  `json:"milliseconds" gencodec:"required"`
 		Hash             common.Hash     `json:"hash"`
 	}
 	var enc Header
@@ -59,6 +60,7 @@ func (h Header) MarshalJSON() ([]byte, error) {
 	enc.BlobGasUsed = (*hexutil.Uint64)(h.BlobGasUsed)
 	enc.ExcessBlobGas = (*hexutil.Uint64)(h.ExcessBlobGas)
 	enc.ParentBeaconRoot = h.ParentBeaconRoot
+	enc.Milliseconds = hexutil.Uint64(h.Milliseconds)
 	enc.Hash = h.Hash()
 	return json.Marshal(&enc)
 }
@@ -86,6 +88,7 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 		BlobGasUsed      *hexutil.Uint64 `json:"blobGasUsed" rlp:"optional"`
 		ExcessBlobGas    *hexutil.Uint64 `json:"excessBlobGas" rlp:"optional"`
 		ParentBeaconRoot *common.Hash    `json:"parentBeaconBlockRoot" rlp:"optional"`
+		Milliseconds     *hexutil.Uint64 `json:"milliseconds" gencodec:"required"`
 	}
 	var dec Header
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -163,5 +166,9 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 	if dec.ParentBeaconRoot != nil {
 		h.ParentBeaconRoot = dec.ParentBeaconRoot
 	}
+	if dec.Milliseconds == nil {
+		return errors.New("missing required field 'milliseconds' for Header")
+	}
+	h.Milliseconds = uint64(*dec.Milliseconds)
 	return nil
 }

@@ -37,6 +37,7 @@ func (s stEnv) MarshalJSON() ([]byte, error) {
 		ParentExcessBlobGas   *math.HexOrDecimal64                `json:"parentExcessBlobGas,omitempty"`
 		ParentBlobGasUsed     *math.HexOrDecimal64                `json:"parentBlobGasUsed,omitempty"`
 		ParentBeaconBlockRoot *common.Hash                        `json:"parentBeaconBlockRoot"`
+		Milliseconds          math.HexOrDecimal64                 `json:"currentMilliseconds" gencodec:"required"`
 	}
 	var enc stEnv
 	enc.Coinbase = common.UnprefixedAddress(s.Coinbase)
@@ -59,6 +60,7 @@ func (s stEnv) MarshalJSON() ([]byte, error) {
 	enc.ParentExcessBlobGas = (*math.HexOrDecimal64)(s.ParentExcessBlobGas)
 	enc.ParentBlobGasUsed = (*math.HexOrDecimal64)(s.ParentBlobGasUsed)
 	enc.ParentBeaconBlockRoot = s.ParentBeaconBlockRoot
+	enc.Milliseconds = math.HexOrDecimal64(s.Milliseconds)
 	return json.Marshal(&enc)
 }
 
@@ -85,6 +87,7 @@ func (s *stEnv) UnmarshalJSON(input []byte) error {
 		ParentExcessBlobGas   *math.HexOrDecimal64                `json:"parentExcessBlobGas,omitempty"`
 		ParentBlobGasUsed     *math.HexOrDecimal64                `json:"parentBlobGasUsed,omitempty"`
 		ParentBeaconBlockRoot *common.Hash                        `json:"parentBeaconBlockRoot"`
+		Milliseconds          *math.HexOrDecimal64                `json:"currentMilliseconds" gencodec:"required"`
 	}
 	var dec stEnv
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -154,5 +157,9 @@ func (s *stEnv) UnmarshalJSON(input []byte) error {
 	if dec.ParentBeaconBlockRoot != nil {
 		s.ParentBeaconBlockRoot = dec.ParentBeaconBlockRoot
 	}
+	if dec.Milliseconds == nil {
+		return errors.New("missing required field 'currentMilliseconds' for stEnv")
+	}
+	s.Milliseconds = uint64(*dec.Milliseconds)
 	return nil
 }

@@ -34,6 +34,7 @@ func (e ExecutableData) MarshalJSON() ([]byte, error) {
 		Withdrawals   []*types.Withdrawal `json:"withdrawals"`
 		BlobGasUsed   *hexutil.Uint64     `json:"blobGasUsed"`
 		ExcessBlobGas *hexutil.Uint64     `json:"excessBlobGas"`
+		Milliseconds  hexutil.Uint64      `json:"milliseconds" gencodec:"required"`
 	}
 	var enc ExecutableData
 	enc.ParentHash = e.ParentHash
@@ -58,6 +59,7 @@ func (e ExecutableData) MarshalJSON() ([]byte, error) {
 	enc.Withdrawals = e.Withdrawals
 	enc.BlobGasUsed = (*hexutil.Uint64)(e.BlobGasUsed)
 	enc.ExcessBlobGas = (*hexutil.Uint64)(e.ExcessBlobGas)
+	enc.Milliseconds = hexutil.Uint64(e.Milliseconds)
 	return json.Marshal(&enc)
 }
 
@@ -81,6 +83,7 @@ func (e *ExecutableData) UnmarshalJSON(input []byte) error {
 		Withdrawals   []*types.Withdrawal `json:"withdrawals"`
 		BlobGasUsed   *hexutil.Uint64     `json:"blobGasUsed"`
 		ExcessBlobGas *hexutil.Uint64     `json:"excessBlobGas"`
+		Milliseconds  *hexutil.Uint64     `json:"milliseconds" gencodec:"required"`
 	}
 	var dec ExecutableData
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -154,5 +157,9 @@ func (e *ExecutableData) UnmarshalJSON(input []byte) error {
 	if dec.ExcessBlobGas != nil {
 		e.ExcessBlobGas = (*uint64)(dec.ExcessBlobGas)
 	}
+	if dec.Milliseconds == nil {
+		return errors.New("missing required field 'milliseconds' for ExecutableData")
+	}
+	e.Milliseconds = uint64(*dec.Milliseconds)
 	return nil
 }
