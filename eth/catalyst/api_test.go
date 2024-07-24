@@ -211,6 +211,7 @@ func TestEth2PrepareAndGetPayload(t *testing.T) {
 		Random:       blockParams.Random,
 		BeaconRoot:   blockParams.BeaconRoot,
 		Version:      engine.PayloadV1,
+		Milliseconds: blockParams.Milliseconds,
 	}).Id()
 	require.Equal(t, payloadID, *resp.PayloadID)
 	require.NoError(t, waitForApiPayloadToBuild(api, *resp.PayloadID))
@@ -679,6 +680,7 @@ func assembleBlock(api *ConsensusAPI, parentHash common.Hash, params *engine.Pay
 		Random:       params.Random,
 		Withdrawals:  params.Withdrawals,
 		BeaconRoot:   params.BeaconRoot,
+		Milliseconds: params.Milliseconds,
 	}
 	payload, err := api.eth.Miner().BuildPayload(args)
 	if err != nil {
@@ -920,6 +922,7 @@ func TestNewPayloadOnInvalidTerminalBlock(t *testing.T) {
 		Timestamp:    parent.Time() + 1,
 		Random:       crypto.Keccak256Hash([]byte{byte(1)}),
 		FeeRecipient: parent.Coinbase(),
+		Milliseconds: parent.Milliseconds() + 1000,
 	}
 	payload, err := api.eth.Miner().BuildPayload(args)
 	if err != nil {
@@ -1088,6 +1091,7 @@ func TestWithdrawals(t *testing.T) {
 		Withdrawals:  blockParams.Withdrawals,
 		BeaconRoot:   blockParams.BeaconRoot,
 		Version:      engine.PayloadV2,
+		Milliseconds: blockParams.Milliseconds,
 	}).Id()
 	require.Equal(t, payloadID, *resp.PayloadID)
 	require.NoError(t, waitForApiPayloadToBuild(api, payloadID))
@@ -1139,6 +1143,7 @@ func TestWithdrawals(t *testing.T) {
 		Withdrawals:  blockParams.Withdrawals,
 		BeaconRoot:   blockParams.BeaconRoot,
 		Version:      engine.PayloadV2,
+		Milliseconds: blockParams.Milliseconds,
 	}).Id()
 	require.Equal(t, payloadID, *resp.PayloadID)
 	require.NoError(t, waitForApiPayloadToBuild(api, payloadID))
@@ -1291,6 +1296,7 @@ func TestNilWithdrawals(t *testing.T) {
 			BeaconRoot:   test.blockParams.BeaconRoot,
 			Withdrawals:  test.blockParams.Withdrawals,
 			Version:      payloadVersion,
+			Milliseconds: test.blockParams.Milliseconds,
 		}).Id()
 		execData, err := api.GetPayloadV2(payloadID)
 		if err != nil {
@@ -1647,6 +1653,7 @@ func TestParentBeaconBlockRoot(t *testing.T) {
 		Withdrawals:  blockParams.Withdrawals,
 		BeaconRoot:   blockParams.BeaconRoot,
 		Version:      engine.PayloadV3,
+		Milliseconds: blockParams.Milliseconds,
 	}).Id()
 	require.Equal(t, payloadID, *resp.PayloadID)
 	require.NoError(t, waitForApiPayloadToBuild(api, *resp.PayloadID))
