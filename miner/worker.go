@@ -980,6 +980,8 @@ type generateParams struct {
 	gasLimit  *uint64            // Optional gas limit override
 	interrupt *atomic.Int32      // Optional interruption signal to pass down to worker.generateWork
 	isUpdate  bool               // Optional flag indicating that this is building a discardable update
+
+	Milliseconds uint64 // The timestamp in milliseconds for sealing task
 }
 
 // validateParams validates the given parameters.
@@ -1005,6 +1007,12 @@ func (w *worker) validateParams(genParams *generateParams) (time.Duration, error
 	blockTime := int64(genParams.timestamp) - int64(parent.Time)
 	if blockTime <= 0 && genParams.forceTime {
 		return 0, fmt.Errorf("invalid timestamp, parent %d given %d", parent.Time, genParams.timestamp)
+	}
+
+	// Sanity check the milliseconds correctness
+	blockTimeMs := int64(genParams.Milliseconds) - int64(parent.Milliseconds)
+	if blockTimeMs <= 0 {
+		return 0, fmt.Errorf("invalid milliseconds, parent %d given %d", parent.Milliseconds, genParams.Milliseconds)
 	}
 
 	// minimum payload build time of 2s

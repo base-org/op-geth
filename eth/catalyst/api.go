@@ -393,6 +393,7 @@ func (api *ConsensusAPI) forkchoiceUpdated(update engine.ForkchoiceStateV1, payl
 			Transactions: transactions,
 			GasLimit:     payloadAttributes.GasLimit,
 			Version:      payloadVersion,
+			Milliseconds: payloadAttributes.Milliseconds,
 		}
 		id := args.Id()
 		// If we already are busy generating this work, then we do not need
