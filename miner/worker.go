@@ -1047,13 +1047,21 @@ func (w *worker) prepareWork(genParams *generateParams) (*environment, error) {
 		}
 		timestamp = parent.Time + 1
 	}
+	milliseconds := genParams.Milliseconds
+	if parent.Milliseconds >= milliseconds {
+		if genParams.forceTime {
+			return nil, fmt.Errorf("invalid milliseconds timestamp, parent %d given %d", parent.Milliseconds, milliseconds)
+		}
+		milliseconds = parent.Milliseconds + 1000
+	}
 	// Construct the sealing block header.
 	header := &types.Header{
-		ParentHash: parent.Hash(),
-		Number:     new(big.Int).Add(parent.Number, common.Big1),
-		GasLimit:   core.CalcGasLimit(parent.GasLimit, w.config.GasCeil),
-		Time:       timestamp,
-		Coinbase:   genParams.coinbase,
+		ParentHash:   parent.Hash(),
+		Number:       new(big.Int).Add(parent.Number, common.Big1),
+		GasLimit:     core.CalcGasLimit(parent.GasLimit, w.config.GasCeil),
+		Time:         timestamp,
+		Coinbase:     genParams.coinbase,
+		Milliseconds: milliseconds,
 	}
 	// Set the extra field.
 	if len(w.extra) != 0 && w.chainConfig.Optimism == nil { // Optimism chains must not set any extra data.
@@ -1251,6 +1259,7 @@ func (w *worker) commitWork(interrupt *atomic.Int32, timestamp int64) {
 	work, err := w.prepareWork(&generateParams{
 		timestamp: uint64(timestamp),
 		coinbase:  coinbase,
+		// milliseconds?
 	})
 	if err != nil {
 		return

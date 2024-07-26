@@ -77,10 +77,11 @@ func generateMergeChain(n int, merged bool) (*core.Genesis, []*types.Block) {
 			testAddr:                         {Balance: testBalance},
 			params.BeaconRootsStorageAddress: {Balance: common.Big0, Code: common.Hex2Bytes("3373fffffffffffffffffffffffffffffffffffffffe14604457602036146024575f5ffd5b620180005f350680545f35146037575f5ffd5b6201800001545f5260205ff35b6201800042064281555f359062018000015500")},
 		},
-		ExtraData:  []byte("test genesis"),
-		Timestamp:  9000,
-		BaseFee:    big.NewInt(params.InitialBaseFee),
-		Difficulty: big.NewInt(0),
+		ExtraData:    []byte("test genesis"),
+		Timestamp:    9000,
+		BaseFee:      big.NewInt(params.InitialBaseFee),
+		Difficulty:   big.NewInt(0),
+		Milliseconds: 9000 * 1000,
 	}
 	testNonce := uint64(0)
 	generate := func(i int, g *core.BlockGen) {
@@ -1077,7 +1078,7 @@ func TestWithdrawals(t *testing.T) {
 	blockParams := engine.PayloadAttributes{
 		Timestamp:    parent.Time + 5,
 		Withdrawals:  make([]*types.Withdrawal, 0),
-		Milliseconds: parent.Time + 5000,
+		Milliseconds: parent.Milliseconds + 5000,
 	}
 	fcState := engine.ForkchoiceStateV1{
 		HeadBlockHash: parent.Hash(),

@@ -616,6 +616,10 @@ func (api *ConsensusAPI) newPayload(params engine.ExecutableData, versionedHashe
 		log.Warn("Invalid timestamp", "parent", block.Time(), "block", block.Time())
 		return api.invalid(errors.New("invalid timestamp"), parent.Header()), nil
 	}
+	if block.Milliseconds() <= parent.Milliseconds() {
+		log.Warn("Invalid milliseconds timestamp", "parent", block.Milliseconds(), "block", block.Milliseconds())
+		return api.invalid(errors.New("invalid milliseconds timestamp"), parent.Header()), nil
+	}
 	// Another corner case: if the node is in snap sync mode, but the CL client
 	// tries to make it import a block. That should be denied as pushing something
 	// into the database directly will conflict with the assumptions of snap sync

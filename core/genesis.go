@@ -79,6 +79,8 @@ type Genesis struct {
 	// Chains with history pruning, or extraordinarily large genesis allocation (e.g. after a regenesis event)
 	// may utilize this to get started, and then state-sync the latest state, while still verifying the header chain.
 	StateHash *common.Hash `json:"stateHash,omitempty"`
+
+	Milliseconds uint64 `json:"milliseconds"`
 }
 
 func ReadGenesis(db ethdb.Database) (*Genesis, error) {
@@ -462,18 +464,19 @@ func (g *Genesis) ToBlock() *types.Block {
 		panic(err)
 	}
 	head := &types.Header{
-		Number:     new(big.Int).SetUint64(g.Number),
-		Nonce:      types.EncodeNonce(g.Nonce),
-		Time:       g.Timestamp,
-		ParentHash: g.ParentHash,
-		Extra:      g.ExtraData,
-		GasLimit:   g.GasLimit,
-		GasUsed:    g.GasUsed,
-		BaseFee:    g.BaseFee,
-		Difficulty: g.Difficulty,
-		MixDigest:  g.Mixhash,
-		Coinbase:   g.Coinbase,
-		Root:       root,
+		Number:       new(big.Int).SetUint64(g.Number),
+		Nonce:        types.EncodeNonce(g.Nonce),
+		Time:         g.Timestamp,
+		ParentHash:   g.ParentHash,
+		Extra:        g.ExtraData,
+		GasLimit:     g.GasLimit,
+		GasUsed:      g.GasUsed,
+		BaseFee:      g.BaseFee,
+		Difficulty:   g.Difficulty,
+		MixDigest:    g.Mixhash,
+		Coinbase:     g.Coinbase,
+		Root:         root,
+		Milliseconds: g.Milliseconds,
 	}
 	if g.GasLimit == 0 {
 		head.GasLimit = params.GenesisGasLimit
