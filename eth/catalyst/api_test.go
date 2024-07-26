@@ -116,7 +116,8 @@ func TestEth2AssembleBlock(t *testing.T) {
 	}
 	ethservice.TxPool().Add([]*types.Transaction{tx}, true, false)
 	blockParams := engine.PayloadAttributes{
-		Timestamp: blocks[9].Time() + 5,
+		Timestamp:    blocks[9].Time() + 5,
+		Milliseconds: blocks[9].Milliseconds() + 5000,
 	}
 	// The miner needs to pick up on the txs in the pool, so a few retries might be
 	// needed.
@@ -153,7 +154,8 @@ func TestEth2AssembleBlockWithAnotherBlocksTxs(t *testing.T) {
 	txs := blocks[9].Transactions()
 	api.eth.TxPool().Add(txs, false, true)
 	blockParams := engine.PayloadAttributes{
-		Timestamp: blocks[8].Time() + 5,
+		Timestamp:    blocks[8].Time() + 5,
+		Milliseconds: blocks[8].Milliseconds() + 5000,
 	}
 	// The miner needs to pick up on the txs in the pool, so a few retries might be
 	// needed.
@@ -193,7 +195,8 @@ func TestEth2PrepareAndGetPayload(t *testing.T) {
 	txs := blocks[9].Transactions()
 	ethservice.TxPool().Add(txs, true, false)
 	blockParams := engine.PayloadAttributes{
-		Timestamp: blocks[8].Time() + 5,
+		Timestamp:    blocks[8].Time() + 5,
+		Milliseconds: blocks[8].Milliseconds() + 5000,
 	}
 	fcState := engine.ForkchoiceStateV1{
 		HeadBlockHash:      blocks[8].Hash(),
@@ -211,6 +214,7 @@ func TestEth2PrepareAndGetPayload(t *testing.T) {
 		Random:       blockParams.Random,
 		BeaconRoot:   blockParams.BeaconRoot,
 		Version:      engine.PayloadV1,
+		Milliseconds: blockParams.Milliseconds,
 	}).Id()
 	require.Equal(t, payloadID, *resp.PayloadID)
 	require.NoError(t, waitForApiPayloadToBuild(api, *resp.PayloadID))
@@ -274,6 +278,7 @@ func TestInvalidPayloadTimestamp(t *testing.T) {
 				Timestamp:             test.time,
 				Random:                crypto.Keccak256Hash([]byte{byte(123)}),
 				SuggestedFeeRecipient: parent.Coinbase,
+				Milliseconds:          test.time * 1000,
 			}
 			fcState := engine.ForkchoiceStateV1{
 				HeadBlockHash:      parent.Hash(),
@@ -315,7 +320,8 @@ func TestEth2NewBlock(t *testing.T) {
 		ethservice.TxPool().Add([]*types.Transaction{tx}, true, false)
 
 		execData, err := assembleWithTransactions(api, parent.Hash(), &engine.PayloadAttributes{
-			Timestamp: parent.Time() + 5,
+			Timestamp:    parent.Time() + 5,
+			Milliseconds: parent.Milliseconds() + 5000,
 		}, 1)
 		if err != nil {
 			t.Fatalf("Failed to create the executable data %v", err)
@@ -357,7 +363,8 @@ func TestEth2NewBlock(t *testing.T) {
 	parent = preMergeBlocks[len(preMergeBlocks)-1]
 	for i := 0; i < 10; i++ {
 		execData, err := assembleBlock(api, parent.Hash(), &engine.PayloadAttributes{
-			Timestamp: parent.Time() + 6,
+			Timestamp:    parent.Time() + 6,
+			Milliseconds: parent.Milliseconds() + 6000,
 		})
 		if err != nil {
 			t.Fatalf("Failed to create the executable data %v", err)
@@ -618,6 +625,7 @@ func TestNewPayloadOnInvalidChain(t *testing.T) {
 				Timestamp:             parent.Time + 1,
 				Random:                crypto.Keccak256Hash([]byte{byte(i)}),
 				SuggestedFeeRecipient: parent.Coinbase,
+				Milliseconds:          parent.Milliseconds + 1000,
 			}
 			fcState = engine.ForkchoiceStateV1{
 				HeadBlockHash:      parent.Hash(),
@@ -644,6 +652,7 @@ func TestNewPayloadOnInvalidChain(t *testing.T) {
 			}
 			// No luck this time we need to update the params and try again.
 			params.Timestamp = params.Timestamp + 1
+			params.Milliseconds = params.Milliseconds + 1000
 			if i > 10 {
 				t.Fatalf("payload should not be empty")
 			}
@@ -678,6 +687,7 @@ func assembleBlock(api *ConsensusAPI, parentHash common.Hash, params *engine.Pay
 		Random:       params.Random,
 		Withdrawals:  params.Withdrawals,
 		BeaconRoot:   params.BeaconRoot,
+		Milliseconds: params.Milliseconds,
 	}
 	payload, err := api.eth.Miner().BuildPayload(args)
 	if err != nil {
@@ -753,6 +763,7 @@ func getNewPayload(t *testing.T, api *ConsensusAPI, parent *types.Header, withdr
 		Random:                crypto.Keccak256Hash([]byte{byte(1)}),
 		SuggestedFeeRecipient: parent.Coinbase,
 		Withdrawals:           withdrawals,
+		Milliseconds:          parent.Milliseconds + 1000,
 	}
 
 	payload, err := assembleBlock(api, parent.Hash(), &params)
@@ -769,21 +780,22 @@ func setBlockhash(data *engine.ExecutableData) *engine.ExecutableData {
 	number := big.NewInt(0)
 	number.SetUint64(data.Number)
 	header := &types.Header{
-		ParentHash:  data.ParentHash,
-		UncleHash:   types.EmptyUncleHash,
-		Coinbase:    data.FeeRecipient,
-		Root:        data.StateRoot,
-		TxHash:      types.DeriveSha(types.Transactions(txs), trie.NewStackTrie(nil)),
-		ReceiptHash: data.ReceiptsRoot,
-		Bloom:       types.BytesToBloom(data.LogsBloom),
-		Difficulty:  common.Big0,
-		Number:      number,
-		GasLimit:    data.GasLimit,
-		GasUsed:     data.GasUsed,
-		Time:        data.Timestamp,
-		BaseFee:     data.BaseFeePerGas,
-		Extra:       data.ExtraData,
-		MixDigest:   data.Random,
+		ParentHash:   data.ParentHash,
+		UncleHash:    types.EmptyUncleHash,
+		Coinbase:     data.FeeRecipient,
+		Root:         data.StateRoot,
+		TxHash:       types.DeriveSha(types.Transactions(txs), trie.NewStackTrie(nil)),
+		ReceiptHash:  data.ReceiptsRoot,
+		Bloom:        types.BytesToBloom(data.LogsBloom),
+		Difficulty:   common.Big0,
+		Number:       number,
+		GasLimit:     data.GasLimit,
+		GasUsed:      data.GasUsed,
+		Time:         data.Timestamp,
+		BaseFee:      data.BaseFeePerGas,
+		Extra:        data.ExtraData,
+		MixDigest:    data.Random,
+		Milliseconds: data.Milliseconds,
 	}
 	block := types.NewBlockWithHeader(header).WithBody(txs, nil /* uncles */)
 	data.BlockHash = block.Hash()
@@ -917,6 +929,7 @@ func TestNewPayloadOnInvalidTerminalBlock(t *testing.T) {
 		Timestamp:    parent.Time() + 1,
 		Random:       crypto.Keccak256Hash([]byte{byte(1)}),
 		FeeRecipient: parent.Coinbase(),
+		Milliseconds: parent.Milliseconds() + 1000,
 	}
 	payload, err := api.eth.Miner().BuildPayload(args)
 	if err != nil {
@@ -927,21 +940,22 @@ func TestNewPayloadOnInvalidTerminalBlock(t *testing.T) {
 	// We need to recompute the blockhash, since the miner computes a wrong (correct) blockhash
 	txs, _ := decodeTransactions(data.Transactions)
 	header := &types.Header{
-		ParentHash:  data.ParentHash,
-		UncleHash:   types.EmptyUncleHash,
-		Coinbase:    data.FeeRecipient,
-		Root:        data.StateRoot,
-		TxHash:      types.DeriveSha(types.Transactions(txs), trie.NewStackTrie(nil)),
-		ReceiptHash: data.ReceiptsRoot,
-		Bloom:       types.BytesToBloom(data.LogsBloom),
-		Difficulty:  common.Big0,
-		Number:      new(big.Int).SetUint64(data.Number),
-		GasLimit:    data.GasLimit,
-		GasUsed:     data.GasUsed,
-		Time:        data.Timestamp,
-		BaseFee:     data.BaseFeePerGas,
-		Extra:       data.ExtraData,
-		MixDigest:   data.Random,
+		ParentHash:   data.ParentHash,
+		UncleHash:    types.EmptyUncleHash,
+		Coinbase:     data.FeeRecipient,
+		Root:         data.StateRoot,
+		TxHash:       types.DeriveSha(types.Transactions(txs), trie.NewStackTrie(nil)),
+		ReceiptHash:  data.ReceiptsRoot,
+		Bloom:        types.BytesToBloom(data.LogsBloom),
+		Difficulty:   common.Big0,
+		Number:       new(big.Int).SetUint64(data.Number),
+		GasLimit:     data.GasLimit,
+		GasUsed:      data.GasUsed,
+		Time:         data.Timestamp,
+		BaseFee:      data.BaseFeePerGas,
+		Extra:        data.ExtraData,
+		MixDigest:    data.Random,
+		Milliseconds: data.Milliseconds,
 	}
 	block := types.NewBlockWithHeader(header).WithBody(txs, nil /* uncles */)
 	data.BlockHash = block.Hash()
@@ -969,7 +983,8 @@ func TestSimultaneousNewBlock(t *testing.T) {
 	)
 	for i := 0; i < 10; i++ {
 		execData, err := assembleBlock(api, parent.Hash(), &engine.PayloadAttributes{
-			Timestamp: parent.Time() + 5,
+			Timestamp:    parent.Time() + 5,
+			Milliseconds: parent.Milliseconds() + 5000,
 		})
 		if err != nil {
 			t.Fatalf("Failed to create the executable data %v", err)
@@ -1060,8 +1075,9 @@ func TestWithdrawals(t *testing.T) {
 	// 10: Build Shanghai block with no withdrawals.
 	parent := ethservice.BlockChain().CurrentHeader()
 	blockParams := engine.PayloadAttributes{
-		Timestamp:   parent.Time + 5,
-		Withdrawals: make([]*types.Withdrawal, 0),
+		Timestamp:    parent.Time + 5,
+		Withdrawals:  make([]*types.Withdrawal, 0),
+		Milliseconds: parent.Time + 5000,
 	}
 	fcState := engine.ForkchoiceStateV1{
 		HeadBlockHash: parent.Hash(),
@@ -1083,6 +1099,7 @@ func TestWithdrawals(t *testing.T) {
 		Withdrawals:  blockParams.Withdrawals,
 		BeaconRoot:   blockParams.BeaconRoot,
 		Version:      engine.PayloadV2,
+		Milliseconds: blockParams.Milliseconds,
 	}).Id()
 	require.Equal(t, payloadID, *resp.PayloadID)
 	require.NoError(t, waitForApiPayloadToBuild(api, payloadID))
@@ -1118,6 +1135,7 @@ func TestWithdrawals(t *testing.T) {
 				Amount:  33,
 			},
 		},
+		Milliseconds: execData.ExecutionPayload.Milliseconds + 5000,
 	}
 	fcState.HeadBlockHash = execData.ExecutionPayload.BlockHash
 	resp, err = api.ForkchoiceUpdatedV2(fcState, &blockParams)
@@ -1134,6 +1152,7 @@ func TestWithdrawals(t *testing.T) {
 		Withdrawals:  blockParams.Withdrawals,
 		BeaconRoot:   blockParams.BeaconRoot,
 		Version:      engine.PayloadV2,
+		Milliseconds: blockParams.Milliseconds,
 	}).Id()
 	require.Equal(t, payloadID, *resp.PayloadID)
 	require.NoError(t, waitForApiPayloadToBuild(api, payloadID))
@@ -1189,15 +1208,17 @@ func TestNilWithdrawals(t *testing.T) {
 		// Before Shanghai
 		{
 			blockParams: engine.PayloadAttributes{
-				Timestamp:   parent.Time + 2,
-				Withdrawals: nil,
+				Timestamp:    parent.Time + 2,
+				Withdrawals:  nil,
+				Milliseconds: parent.Milliseconds + 2000,
 			},
 			wantErr: false,
 		},
 		{
 			blockParams: engine.PayloadAttributes{
-				Timestamp:   parent.Time + 2,
-				Withdrawals: make([]*types.Withdrawal, 0),
+				Timestamp:    parent.Time + 2,
+				Withdrawals:  make([]*types.Withdrawal, 0),
+				Milliseconds: parent.Milliseconds + 2000,
 			},
 			wantErr: true,
 		},
@@ -1211,21 +1232,24 @@ func TestNilWithdrawals(t *testing.T) {
 						Amount:  32,
 					},
 				},
+				Milliseconds: parent.Milliseconds + 2000,
 			},
 			wantErr: true,
 		},
 		// After Shanghai
 		{
 			blockParams: engine.PayloadAttributes{
-				Timestamp:   parent.Time + 5,
-				Withdrawals: nil,
+				Timestamp:    parent.Time + 5,
+				Withdrawals:  nil,
+				Milliseconds: parent.Milliseconds + 5000,
 			},
 			wantErr: true,
 		},
 		{
 			blockParams: engine.PayloadAttributes{
-				Timestamp:   parent.Time + 5,
-				Withdrawals: make([]*types.Withdrawal, 0),
+				Timestamp:    parent.Time + 5,
+				Withdrawals:  make([]*types.Withdrawal, 0),
+				Milliseconds: parent.Milliseconds + 5000,
 			},
 			wantErr: false,
 		},
@@ -1239,6 +1263,7 @@ func TestNilWithdrawals(t *testing.T) {
 						Amount:  32,
 					},
 				},
+				Milliseconds: parent.Milliseconds + 5000,
 			},
 			wantErr: false,
 		},
@@ -1280,6 +1305,7 @@ func TestNilWithdrawals(t *testing.T) {
 			BeaconRoot:   test.blockParams.BeaconRoot,
 			Withdrawals:  test.blockParams.Withdrawals,
 			Version:      payloadVersion,
+			Milliseconds: test.blockParams.Milliseconds,
 		}).Id()
 		execData, err := api.GetPayloadV2(payloadID)
 		if err != nil {
@@ -1611,9 +1637,10 @@ func TestParentBeaconBlockRoot(t *testing.T) {
 	// 11: Build Shanghai block with no withdrawals.
 	parent := ethservice.BlockChain().CurrentHeader()
 	blockParams := engine.PayloadAttributes{
-		Timestamp:   parent.Time + 5,
-		Withdrawals: make([]*types.Withdrawal, 0),
-		BeaconRoot:  &common.Hash{42},
+		Timestamp:    parent.Time + 5,
+		Withdrawals:  make([]*types.Withdrawal, 0),
+		BeaconRoot:   &common.Hash{42},
+		Milliseconds: parent.Milliseconds + 5000,
 	}
 	fcState := engine.ForkchoiceStateV1{
 		HeadBlockHash: parent.Hash(),
@@ -1635,6 +1662,7 @@ func TestParentBeaconBlockRoot(t *testing.T) {
 		Withdrawals:  blockParams.Withdrawals,
 		BeaconRoot:   blockParams.BeaconRoot,
 		Version:      engine.PayloadV3,
+		Milliseconds: blockParams.Milliseconds,
 	}).Id()
 	require.Equal(t, payloadID, *resp.PayloadID)
 	require.NoError(t, waitForApiPayloadToBuild(api, *resp.PayloadID))
