@@ -980,6 +980,8 @@ type generateParams struct {
 	gasLimit  *uint64            // Optional gas limit override
 	interrupt *atomic.Int32      // Optional interruption signal to pass down to worker.generateWork
 	isUpdate  bool               // Optional flag indicating that this is building a discardable update
+
+	Milliseconds uint64 // The timestamp in milliseconds for sealing task
 }
 
 // validateParams validates the given parameters.
@@ -1005,6 +1007,12 @@ func (w *worker) validateParams(genParams *generateParams) (time.Duration, error
 	blockTime := int64(genParams.timestamp) - int64(parent.Time)
 	if blockTime <= 0 && genParams.forceTime {
 		return 0, fmt.Errorf("invalid timestamp, parent %d given %d", parent.Time, genParams.timestamp)
+	}
+
+	// Sanity check the milliseconds correctness
+	blockTimeMs := int64(genParams.Milliseconds) - int64(parent.Milliseconds)
+	if blockTimeMs <= 0 {
+		return 0, fmt.Errorf("invalid milliseconds, parent %d given %d", parent.Milliseconds, genParams.Milliseconds)
 	}
 
 	// minimum payload build time of 2s
@@ -1039,13 +1047,21 @@ func (w *worker) prepareWork(genParams *generateParams) (*environment, error) {
 		}
 		timestamp = parent.Time + 1
 	}
+	milliseconds := genParams.Milliseconds
+	if parent.Milliseconds >= milliseconds {
+		if genParams.forceTime {
+			return nil, fmt.Errorf("invalid milliseconds timestamp, parent %d given %d", parent.Milliseconds, milliseconds)
+		}
+		milliseconds = parent.Milliseconds + 1000
+	}
 	// Construct the sealing block header.
 	header := &types.Header{
-		ParentHash: parent.Hash(),
-		Number:     new(big.Int).Add(parent.Number, common.Big1),
-		GasLimit:   core.CalcGasLimit(parent.GasLimit, w.config.GasCeil),
-		Time:       timestamp,
-		Coinbase:   genParams.coinbase,
+		ParentHash:   parent.Hash(),
+		Number:       new(big.Int).Add(parent.Number, common.Big1),
+		GasLimit:     core.CalcGasLimit(parent.GasLimit, w.config.GasCeil),
+		Time:         timestamp,
+		Coinbase:     genParams.coinbase,
+		Milliseconds: milliseconds,
 	}
 	// Set the extra field.
 	if len(w.extra) != 0 && w.chainConfig.Optimism == nil { // Optimism chains must not set any extra data.
@@ -1243,6 +1259,7 @@ func (w *worker) commitWork(interrupt *atomic.Int32, timestamp int64) {
 	work, err := w.prepareWork(&generateParams{
 		timestamp: uint64(timestamp),
 		coinbase:  coinbase,
+		// milliseconds?
 	})
 	if err != nil {
 		return

@@ -393,6 +393,7 @@ func (api *ConsensusAPI) forkchoiceUpdated(update engine.ForkchoiceStateV1, payl
 			Transactions: transactions,
 			GasLimit:     payloadAttributes.GasLimit,
 			Version:      payloadVersion,
+			Milliseconds: payloadAttributes.Milliseconds,
 		}
 		id := args.Id()
 		// If we already are busy generating this work, then we do not need
@@ -614,6 +615,10 @@ func (api *ConsensusAPI) newPayload(params engine.ExecutableData, versionedHashe
 	if block.Time() <= parent.Time() {
 		log.Warn("Invalid timestamp", "parent", block.Time(), "block", block.Time())
 		return api.invalid(errors.New("invalid timestamp"), parent.Header()), nil
+	}
+	if block.Milliseconds() <= parent.Milliseconds() {
+		log.Warn("Invalid milliseconds timestamp", "parent", block.Milliseconds(), "block", block.Milliseconds())
+		return api.invalid(errors.New("invalid milliseconds timestamp"), parent.Header()), nil
 	}
 	// Another corner case: if the node is in snap sync mode, but the CL client
 	// tries to make it import a block. That should be denied as pushing something

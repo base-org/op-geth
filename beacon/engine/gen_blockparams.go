@@ -24,6 +24,7 @@ func (p PayloadAttributes) MarshalJSON() ([]byte, error) {
 		Transactions          []hexutil.Bytes     `json:"transactions,omitempty"  gencodec:"optional"`
 		NoTxPool              bool                `json:"noTxPool,omitempty" gencodec:"optional"`
 		GasLimit              *hexutil.Uint64     `json:"gasLimit,omitempty" gencodec:"optional"`
+		Milliseconds          hexutil.Uint64      `json:"milliseconds" gencodec:"optional"`
 	}
 	var enc PayloadAttributes
 	enc.Timestamp = hexutil.Uint64(p.Timestamp)
@@ -39,6 +40,7 @@ func (p PayloadAttributes) MarshalJSON() ([]byte, error) {
 	}
 	enc.NoTxPool = p.NoTxPool
 	enc.GasLimit = (*hexutil.Uint64)(p.GasLimit)
+	enc.Milliseconds = hexutil.Uint64(p.Milliseconds)
 	return json.Marshal(&enc)
 }
 
@@ -53,6 +55,7 @@ func (p *PayloadAttributes) UnmarshalJSON(input []byte) error {
 		Transactions          []hexutil.Bytes     `json:"transactions,omitempty"  gencodec:"optional"`
 		NoTxPool              *bool               `json:"noTxPool,omitempty" gencodec:"optional"`
 		GasLimit              *hexutil.Uint64     `json:"gasLimit,omitempty" gencodec:"optional"`
+		Milliseconds          *hexutil.Uint64     `json:"milliseconds" gencodec:"optional"`
 	}
 	var dec PayloadAttributes
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -87,6 +90,9 @@ func (p *PayloadAttributes) UnmarshalJSON(input []byte) error {
 	}
 	if dec.GasLimit != nil {
 		p.GasLimit = (*uint64)(dec.GasLimit)
+	}
+	if dec.Milliseconds != nil {
+		p.Milliseconds = uint64(*dec.Milliseconds)
 	}
 	return nil
 }

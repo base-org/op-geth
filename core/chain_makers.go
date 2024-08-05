@@ -280,13 +280,17 @@ func (b *BlockGen) PrevBlock(index int) *types.Block {
 	return b.cm.chain[index]
 }
 
-// OffsetTime modifies the time instance of a block, implicitly changing its
+// OffsetTime modifies the time and milliseconds instance of a block, implicitly changing its
 // associated difficulty. It's useful to test scenarios where forking is not
 // tied to chain length directly.
 func (b *BlockGen) OffsetTime(seconds int64) {
 	b.header.Time += uint64(seconds)
+	b.header.Milliseconds += uint64(seconds * 1000)
 	if b.header.Time <= b.cm.bottom.Header().Time {
 		panic("block time out of range")
+	}
+	if b.header.Milliseconds <= b.cm.bottom.Header().Milliseconds {
+		panic("block time in milliseconds out of range")
 	}
 	b.header.Difficulty = b.engine.CalcDifficulty(b.cm, b.header.Time, b.parent.Header())
 }
@@ -420,13 +424,14 @@ func GenerateChainWithGenesis(genesis *Genesis, engine consensus.Engine, n int, 
 func (cm *chainMaker) makeHeader(parent *types.Block, state *state.StateDB, engine consensus.Engine) *types.Header {
 	time := parent.Time() + 10 // block time is fixed at 10 seconds
 	header := &types.Header{
-		Root:       state.IntermediateRoot(cm.config.IsEIP158(parent.Number())),
-		ParentHash: parent.Hash(),
-		Coinbase:   parent.Coinbase(),
-		Difficulty: engine.CalcDifficulty(cm, time, parent.Header()),
-		GasLimit:   parent.GasLimit(),
-		Number:     new(big.Int).Add(parent.Number(), common.Big1),
-		Time:       time,
+		Root:         state.IntermediateRoot(cm.config.IsEIP158(parent.Number())),
+		ParentHash:   parent.Hash(),
+		Coinbase:     parent.Coinbase(),
+		Difficulty:   engine.CalcDifficulty(cm, time, parent.Header()),
+		GasLimit:     parent.GasLimit(),
+		Number:       new(big.Int).Add(parent.Number(), common.Big1),
+		Time:         time,
+		Milliseconds: parent.Milliseconds() + 10*1000,
 	}
 
 	if cm.config.IsLondon(header.Number) {

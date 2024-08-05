@@ -62,6 +62,7 @@ func testBuildPayload(t *testing.T, noTxPool, interrupt bool) {
 		Random:       common.Hash{},
 		FeeRecipient: recipient,
 		NoTxPool:     noTxPool,
+		Milliseconds: timestamp * 1000,
 	}
 	// payload resolution now interrupts block building, so we have to
 	// wait for the payloading building process to build its first block
